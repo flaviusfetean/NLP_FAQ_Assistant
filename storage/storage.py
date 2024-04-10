@@ -20,6 +20,7 @@ class Database:
     )
 
     def __init__(self):
+        # TODO: Connect to the database beforehand and activate the vector extension if not already done
         self.embedding_model = OllamaEmbeddings(model='orca-mini')
         if os.path.exists(r"D:\GitHub\NLP_FAQ_Assistant\storage\db_init_status.txt"):
             with open(r"D:\GitHub\NLP_FAQ_Assistant\storage\db_init_status.txt", 'r') as f:

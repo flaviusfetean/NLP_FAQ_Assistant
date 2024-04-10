@@ -1,6 +1,5 @@
-import os
 from fastapi import FastAPI
-from embeddings.embeddings import get_closest_match
+from base.retrieve import get_closest_match
 
 app = FastAPI()
 
