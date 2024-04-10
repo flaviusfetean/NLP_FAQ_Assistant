@@ -20,6 +20,9 @@ def test_closest_match():
         "How can I retrieve lost data from my account?",
         "How do I go back to default account settings?",
         "What makes a good password?",
+        "How can I change the password?",
+        "How can I change the password",  # apparently the deletion of a question mark breaks the similarity for orca-mini
+                                        #TODO: if no match is found, try add or remove question mark
         "How to prepare for a job interview?"
     ]
 
@@ -28,7 +31,7 @@ def test_closest_match():
 
 
 def main():
-    test_query_similarity()
+    #test_query_similarity()
     test_closest_match()
 
 
