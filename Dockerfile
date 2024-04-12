@@ -21,6 +21,7 @@ RUN pip install -r requirements.txt
 
 # Expose the port that your FastAPI application will run on
 EXPOSE 8000
+ENV OLLAMA_MODEL=llama2
 
 # Command to run your FastAPI application using Uvicorn
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

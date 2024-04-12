@@ -16,11 +16,15 @@ PGVECTOR_USER = os.environ.get("PGVECTOR_USER", "postgres")
 PGVECTOR_PASSWORD = os.environ.get("PGVECTOR_PASSWORD", "postgres")
 
 OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "172.16.200.13")
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "orca-mini")
 
 
 class Database:
 
-    COLLECTION_NAME = "questions"
+    COLLECTION_NAME = "questions_" + OLLAMA_MODEL.replace("-", "_")  # different tables for different models,
+                                                                     # to avoid mixing up embeddings
+                                                                     # because of how pgvector works, the
+                                                                     # collections will be created automatically
     CONNECTION_STRING = PGVector.connection_string_from_db_params(
         driver=PGVECTOR_DRIVER,
         host=PGVECTOR_HOST,
@@ -35,7 +39,7 @@ class Database:
         self.create_database_if_not_exists()
         self.create_extension_if_not_exists()
 
-        self.embedding_model = OllamaEmbeddings(model='orca-mini', base_url=f"http://{OLLAMA_HOST}:11434")
+        self.embedding_model = OllamaEmbeddings(model=OLLAMA_MODEL, base_url=f"http://{OLLAMA_HOST}:11434")
         self.populate_db_if_not_populated()
 
     def wait_for_db_to_start(self):
@@ -92,7 +96,7 @@ class Database:
         conn.close()
 
     def populate_db_if_not_populated(self):
-        # populate faqdb if it is empty
+        # populate collection if it is empty
         try:
             self.db = PGVector(
                 embedding_function=self.embedding_model,
@@ -100,10 +104,11 @@ class Database:
                 connection_string=self.CONNECTION_STRING
             )
             sample = self.db.similarity_search("Test", 1)[0]
-            print(f"Database {PGVECTOR_DATABASE} already populated. Skipping population.")
+            print(f"Database {PGVECTOR_DATABASE}:{self.COLLECTION_NAME} already populated. Skipping population.")
         except IndexError:
+            #TODO: further chech if other collections are empty, to copy data from there
             self.create_db()
-            print(f"Successfully populated database {PGVECTOR_DATABASE}")
+            print(f"Successfully populated database {PGVECTOR_DATABASE}:{self.COLLECTION_NAME}")
 
     def create_db(self):
         print("Populating database. This may take some time.")
@@ -114,7 +119,7 @@ class Database:
         self.db = PGVector.from_documents(
             documents=docs,
             embedding=self.embedding_model,
-            collection_name="questions",
+            collection_name=self.COLLECTION_NAME,
             distance_strategy=DistanceStrategy.COSINE,
             connection_string=self.CONNECTION_STRING,
             pre_delete_collection=True)

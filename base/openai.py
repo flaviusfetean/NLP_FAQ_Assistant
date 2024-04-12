@@ -6,6 +6,7 @@ from langchain_core.output_parsers import StrOutputParser
 import os
 
 OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "172.16.200.13")
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "orca-mini")
 
 
 class Assistant:
@@ -55,7 +56,7 @@ class Assistant:
 
         else:
             print("Using local model")
-            return {"source": "local-orca-mini",
+            return {"source": f"local-{OLLAMA_MODEL}",
                     "matched_question": "N/A",
                     "answer": self.client.invoke({"input": question})}
 
@@ -63,7 +64,7 @@ class Assistant:
         client = openai.OpenAI(api_key=api_key)
 
         if not self.test_key(client):
-            model = Ollama(model="orca-mini", base_url=f"http://{OLLAMA_HOST}:11434")
+            model = Ollama(model=OLLAMA_MODEL, base_url=f"http://{OLLAMA_HOST}:11434")
             prompt = ChatPromptTemplate.from_messages([
                     ("system", "You are a FAQ assistant."
                                "Your answer should be clear and straightforward."
@@ -93,7 +94,7 @@ class Assistant:
 
     def switch_local(self):
         if self.client_type == "openai":
-            model = Ollama(model="orca-mini", base_url=f"http://{OLLAMA_HOST}:11434")
+            model = Ollama(model=OLLAMA_MODEL, base_url=f"http://{OLLAMA_HOST}:11434")
             prompt = ChatPromptTemplate.from_messages([
                 ("system", "You are a FAQ assistant."
                            "Your answer should be clear and straightforward."
