@@ -18,15 +18,8 @@ def test_closest_match():
         print(get_closest_match(query))
 
 
-def test_openai():
-    assistant = Assistant()
-    response = assistant.ask("How to change the password?")
-    print(response)
-
-
 def main():
     test_closest_match()
-    #test_openai()
 
 
 if __name__ == "__main__":

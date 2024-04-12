@@ -11,9 +11,6 @@ RUN apt-get update && \
     && apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-#COPY --from=ollama_base /bin/ollama /bin/ollama
-
-#RUN /bin/ollama ollama serve
 
 # Copy your application code to the container
 WORKDIR /app

@@ -12,8 +12,12 @@ import './ChatPage.css';
 
 function ChatPage() {
   const [apiKey, setApiKey] = useState("");
-  const [query, setQuery] = useState("");
-  const [messages, setMessages] = useState([]);
+  const [user_question, setQuery] = useState("");
+  const [messages, setMessages] = useState([
+    {
+        text: "Server: You are currently unauthenticated to the Openai server. This means that the unmatched questions will be processed locally using orca-mini. For forwarding to openai, please introduce your api key in the field above.",
+        type: "received"
+    }]);
   const messagesEndRef = useRef(null);
   const apiEndpoint = process.env.REACT_APP_API;
 
@@ -23,23 +27,51 @@ function ChatPage() {
 
   useEffect(scrollToBottom, [messages]);
 
-  const sendQuery = async () => {
-    if (query.trim()) {
-      const newMessage = { text: `You: ${query}`, type: "sent" };
+  const sendApiKey = async () => {
+    if (apiKey.trim()) {
+      const newMessage = { text: `Sent api key to server`, type: "sent" };
       setMessages([...messages, newMessage]);
-      setQuery("");
 
       try {
         const response = await axios.post(
-          `${apiEndpoint}/ask`,
-          { query },
+          `${apiEndpoint}/set_api_key`,
+          { apiKey },
 //          {
 //            headers: { Authorization: `Bearer ${apiKey}` },
 //          }
         );
         setMessages((messages) => [
           ...messages,
-          { text: `Reply: ${response.data}`, type: "received" },
+          { text: `${response.data}`, type: "received" },
+        ]);
+      } catch (error) {
+        console.error("Error sending message:", error);
+        setMessages((messages) => [
+          ...messages,
+          { text: "Error: Could not get a reply from server.", type: "received" },
+        ]);
+      }
+    }
+  };
+
+  const sendQuery = async () => {
+    if (user_question.trim()) {
+      const newMessage = { text: `You: ${user_question}`, type: "sent" };
+      setMessages([...messages, newMessage]);
+      setQuery("");
+
+      try {
+        const response = await axios.post(
+          `${apiEndpoint}/ask-question`,
+          { user_question },
+//          {
+//            headers: { Authorization: `Bearer ${apiKey}` },
+//          }
+        );
+        //let data = JSON.parse(response.data);
+        setMessages((messages) => [
+          ...messages,
+          { text: `${response.data.source}: ${response.data.answer}`, type: "received" },
         ]);
       } catch (error) {
         console.error("Error sending message:", error);
@@ -60,6 +92,7 @@ function ChatPage() {
           placeholder="Enter API Key..."
           value={apiKey}
           onChange={(e, { value }) => setApiKey(value)}
+          onKeyPress={(e) => e.key === "Enter" && sendApiKey()}
           style={{ marginBottom: "10px" }}
         />
       </Segment>
@@ -100,7 +133,7 @@ function ChatPage() {
           }}
           fluid
           placeholder="Type a message..."
-          value={query}
+          value={user_question}
           onChange={(e, { value }) => setQuery(value)}
           onKeyPress={(e) => e.key === "Enter" && sendQuery()}
         />

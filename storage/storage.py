@@ -1,14 +1,14 @@
-from langchain_community.vectorstores import PGVector
-from langchain_community.document_loaders import JSONLoader, DataFrameLoader
+from langchain_community.document_loaders import DataFrameLoader
 from langchain_community.embeddings import OllamaEmbeddings
+from langchain_community.vectorstores import PGVector
 from langchain.vectorstores.pgvector import DistanceStrategy
-import psycopg2
-import json
 import pandas as pd
+import psycopg2
+import time
 import os
 
 PGVECTOR_DRIVER = os.environ.get("PGVECTOR_DRIVER", "psycopg2")
-PGVECTOR_HOST = os.environ.get("PGVECTOR_HOST", "172.16.200.12")  # "localhost"
+PGVECTOR_HOST = os.environ.get("PGVECTOR_HOST", "172.16.200.12")
 PGVECTOR_PORT = os.environ.get("PGVECTOR_PORT", "5432")
 PGVECTOR_DATABASE = os.environ.get("PGVECTOR_DATABASE", "faqdb")
 PGVECTOR_USER = os.environ.get("PGVECTOR_USER", "postgres")
@@ -28,25 +28,34 @@ class Database:
     )
 
     def __init__(self):
+        self.wait_for_db_to_start()
         self.create_database_if_not_exists()
         self.create_extension_if_not_exists()
-        self.embedding_model = OllamaEmbeddings(model='orca-mini', base_url='http://172.16.200.13:11434')
-        if os.path.exists(r"./storage/db_init_status.txt"):
-            with open(r"./storage/db_init_status.txt", 'r') as f:
-                init_status = f.readline()
-        else:
-            init_status = "NOT_INITIALIZED"
 
-        if init_status == "INITIALIZED":
+        self.embedding_model = OllamaEmbeddings(model='orca-mini', base_url="http://172.16.200.13:11434")
+        already_exists = self.populate_db_if_not_populated()
+        if not already_exists:
             self.db = PGVector(
                 embedding_function=self.embedding_model,
                 collection_name=self.COLLECTION_NAME,
                 connection_string=self.CONNECTION_STRING
             )
-        else:
-            self.create_db()
-            with open(r"./storage/db_init_status.txt", 'w') as f:
-                f.write("INITIALIZED")
+
+    def wait_for_db_to_start(self):
+        conn = None
+        while not conn:
+            try:
+                conn = psycopg2.connect(
+                    dbname='postgres',
+                    user=PGVECTOR_USER,
+                    password=PGVECTOR_PASSWORD,
+                    host=PGVECTOR_HOST,
+                    port=PGVECTOR_PORT
+                )
+                print("Database connection successful")
+            except psycopg2.OperationalError as e:
+                print(e)
+                time.sleep(5)
 
     def create_database_if_not_exists(self):
         conn = psycopg2.connect(
@@ -85,7 +94,41 @@ class Database:
         cur.close()
         conn.close()
 
+    def populate_db_if_not_populated(self):
+        conn = psycopg2.connect(
+            dbname=PGVECTOR_DATABASE,
+            user=PGVECTOR_USER,
+            password=PGVECTOR_PASSWORD,
+            host=PGVECTOR_HOST,
+            port=PGVECTOR_PORT
+        )
+        conn.autocommit = True
+        cur = conn.cursor()
+
+        # populate faqdb if it is empty
+        try:
+            cur.execute(f"SELECT * FROM {self.COLLECTION_NAME}")
+            exists = cur.fetchone()
+            if not exists:
+                self.create_db()
+                print(f"Successfully populated database {PGVECTOR_DATABASE}")
+                cur.close()
+                conn.close()
+                return False
+            else:
+                print(f"Database {PGVECTOR_DATABASE} is not empty. Skipping population.")
+                cur.close()
+                conn.close()
+                return True
+        except psycopg2.errors.UndefinedTable:
+            self.create_db()
+            print(f"Successfully populated database {PGVECTOR_DATABASE}")
+            cur.close()
+            conn.close()
+            return False
+
     def create_db(self):
+        print("Populating database. This may take some time.")
         df = pd.read_csv(r"./storage/FAQ.csv", delimiter=';')
         loader = DataFrameLoader(df, page_content_column="question")
         docs = loader.load()
@@ -100,10 +143,4 @@ class Database:
 
     def query_by_similarity(self, query: str, top_k: int = 1):
         return self.db.similarity_search_with_score(query, top_k)
-
-
-def from_json_as_list():
-    db = open(r"./storage/FAQ.json", 'r')
-    json_data = json.load(db)
-    return json_data
 
