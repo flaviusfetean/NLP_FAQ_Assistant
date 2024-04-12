@@ -1,7 +1,7 @@
 
 services:
   frontend:
-    image: docker-react-i
+    image: flaviusfetean/docker-react-i:latest
     build:
       context: ./faq-front
       dockerfile: Dockerfile
@@ -12,6 +12,7 @@ services:
             ipv4_address: 172.16.200.10
 
   backend:
+    image: flaviusfetean/backend:latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -37,7 +38,7 @@ services:
         ipv4_address: 172.16.200.12
 
   ollama-container:
-    image: ollama_orca:0.1
+    image: flaviusfetean/ollama_orca:latest
     build:
       context: ./ollama
       dockerfile: Dockerfile

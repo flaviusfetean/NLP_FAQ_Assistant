@@ -1,8 +1,3 @@
-# Stage 1: Base stage with ollama image
-#FROM ollama_orca:0.1 as ollama_base
-
-#EXPOSE 11434
-
 # Stage 2: Final stage with Python application
 FROM python:3.12.2
 
