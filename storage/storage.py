@@ -32,14 +32,8 @@ class Database:
         self.create_database_if_not_exists()
         self.create_extension_if_not_exists()
 
-        self.embedding_model = OllamaEmbeddings(model='orca-mini', base_url="http://172.16.200.13:11434")
-        already_exists = self.populate_db_if_not_populated()
-        if not already_exists:
-            self.db = PGVector(
-                embedding_function=self.embedding_model,
-                collection_name=self.COLLECTION_NAME,
-                connection_string=self.CONNECTION_STRING
-            )
+        self.embedding_model = OllamaEmbeddings(model='orca-mini')#, base_url="http://172.16.200.13:11434")
+        self.populate_db_if_not_populated()
 
     def wait_for_db_to_start(self):
         conn = None
@@ -95,37 +89,18 @@ class Database:
         conn.close()
 
     def populate_db_if_not_populated(self):
-        conn = psycopg2.connect(
-            dbname=PGVECTOR_DATABASE,
-            user=PGVECTOR_USER,
-            password=PGVECTOR_PASSWORD,
-            host=PGVECTOR_HOST,
-            port=PGVECTOR_PORT
-        )
-        conn.autocommit = True
-        cur = conn.cursor()
-
         # populate faqdb if it is empty
         try:
-            cur.execute(f"SELECT * FROM {self.COLLECTION_NAME}")
-            exists = cur.fetchone()
-            if not exists:
-                self.create_db()
-                print(f"Successfully populated database {PGVECTOR_DATABASE}")
-                cur.close()
-                conn.close()
-                return False
-            else:
-                print(f"Database {PGVECTOR_DATABASE} is not empty. Skipping population.")
-                cur.close()
-                conn.close()
-                return True
-        except psycopg2.errors.UndefinedTable:
+            self.db = PGVector(
+                embedding_function=self.embedding_model,
+                collection_name=self.COLLECTION_NAME,
+                connection_string=self.CONNECTION_STRING
+            )
+            sample = self.db.similarity_search("Test", 1)[0]
+            print(f"Database {PGVECTOR_DATABASE} already populated. Skipping population.")
+        except IndexError:
             self.create_db()
             print(f"Successfully populated database {PGVECTOR_DATABASE}")
-            cur.close()
-            conn.close()
-            return False
 
     def create_db(self):
         print("Populating database. This may take some time.")

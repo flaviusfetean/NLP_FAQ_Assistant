@@ -54,7 +54,7 @@ class Assistant:
         client = OpenAI(api_key=api_key)
 
         if not self.test_key(client):
-            model = Ollama(model="orca-mini", base_url="http://172.16.200.12:11434")
+            model = Ollama(model="orca-mini")#, base_url="http://172.16.200.12:11434")
             prompt = ChatPromptTemplate.from_messages([
                     ("system", "You are a FAQ assistant."
                                "Your answer should be clear and straightforward."

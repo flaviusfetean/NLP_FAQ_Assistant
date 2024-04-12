@@ -10,8 +10,10 @@ SIMILARITY_THRESHOLD = 0.25
 def get_closest_match(query: str):
     print("Searching for closest match to: ", query)
     query = query.strip()
-    #TODO: Forwatd the query to the assistant if database is empty (except IndexError)
-    answer, score = db.query_by_similarity(query, 1)[0]
+    try:
+        answer, score = db.query_by_similarity(query, 1)[0]
+    except IndexError:
+        return assistant.ask(query)
 
     if score < SIMILARITY_THRESHOLD:
         return {"source": "local",
