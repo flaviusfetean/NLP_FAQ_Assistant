@@ -1,0 +1,55 @@
+
+services:
+  frontend:
+    image: docker-react-i
+    build:
+      context: ./faq-front
+      dockerfile: Dockerfile
+    ports:
+        - "3000:3000"
+    networks:
+        faq-assistant-network:
+            ipv4_address: 172.16.200.10
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - ollama-container
+    networks:
+      faq-assistant-network:
+        ipv4_address: 172.16.200.11
+
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: faq_db
+    ports:
+      - "5432:5432"
+    networks:
+      faq-assistant-network:
+        ipv4_address: 172.16.200.12
+
+  ollama-container:
+    image: ollama_orca:0.1
+    build:
+      context: ./ollama
+      dockerfile: Dockerfile
+    ports:
+        - "11434:11434"
+    networks:
+        faq-assistant-network:
+            ipv4_address: 172.16.200.13
+
+networks:
+  faq-assistant-network:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.200.0/24
