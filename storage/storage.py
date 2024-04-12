@@ -2,6 +2,7 @@ from langchain_community.document_loaders import DataFrameLoader
 from langchain_community.embeddings import OllamaEmbeddings
 from langchain_community.vectorstores import PGVector
 from langchain.vectorstores.pgvector import DistanceStrategy
+from langchain.docstore.document import Document
 import pandas as pd
 import psycopg2
 import time
@@ -13,6 +14,8 @@ PGVECTOR_PORT = os.environ.get("PGVECTOR_PORT", "5432")
 PGVECTOR_DATABASE = os.environ.get("PGVECTOR_DATABASE", "faqdb")
 PGVECTOR_USER = os.environ.get("PGVECTOR_USER", "postgres")
 PGVECTOR_PASSWORD = os.environ.get("PGVECTOR_PASSWORD", "postgres")
+
+OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "172.16.200.13")
 
 
 class Database:
@@ -32,7 +35,7 @@ class Database:
         self.create_database_if_not_exists()
         self.create_extension_if_not_exists()
 
-        self.embedding_model = OllamaEmbeddings(model='orca-mini')#, base_url="http://172.16.200.13:11434")
+        self.embedding_model = OllamaEmbeddings(model='orca-mini', base_url=f"http://{OLLAMA_HOST}:11434")
         self.populate_db_if_not_populated()
 
     def wait_for_db_to_start(self):
@@ -119,3 +122,7 @@ class Database:
     def query_by_similarity(self, query: str, top_k: int = 1):
         return self.db.similarity_search_with_score(query, top_k)
 
+    def insert(self, question: str, answer: str):
+        print("Inserting new question and answer into database")
+        entry = Document(page_content=question, metadata={"answer": answer})
+        self.db.add_documents([entry])

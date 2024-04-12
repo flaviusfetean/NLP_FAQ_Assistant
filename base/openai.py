@@ -3,6 +3,9 @@ from config import api_key
 from langchain_community.llms import Ollama
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
+import os
+
+OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "172.16.200.13")
 
 
 class Assistant:
@@ -54,7 +57,7 @@ class Assistant:
         client = OpenAI(api_key=api_key)
 
         if not self.test_key(client):
-            model = Ollama(model="orca-mini")#, base_url="http://172.16.200.12:11434")
+            model = Ollama(model="orca-mini", base_url=f"http://{OLLAMA_HOST}:11434")
             prompt = ChatPromptTemplate.from_messages([
                     ("system", "You are a FAQ assistant."
                                "Your answer should be clear and straightforward."

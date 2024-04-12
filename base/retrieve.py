@@ -13,7 +13,9 @@ def get_closest_match(query: str):
     try:
         answer, score = db.query_by_similarity(query, 1)[0]
     except IndexError:
-        return assistant.ask(query)
+        assistant_response = assistant.ask(query)
+        db.insert(query, assistant_response['answer'])
+        return assistant_response
 
     if score < SIMILARITY_THRESHOLD:
         return {"source": "local",
@@ -33,5 +35,6 @@ def get_closest_match(query: str):
     print("No match found for: ", query)
     print("Forwarding to assistant")
 
-    #TODO: Insert the answer into the database if no match is found
-    return assistant.ask(query)
+    assistant_response = assistant.ask(query)
+    db.insert(query, assistant_response['answer'])
+    return assistant_response
