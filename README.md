@@ -44,25 +44,31 @@ Objective: Develop a solution that can provide answers to users' questions by ma
 5. [Node.js](https://nodejs.org/en) (the LTS version, as it contains npm which is necessary for running the frontend).
 
 #### Usage
-1. Create in the repository folder a new file named `config.py`, and write an api key as shown below (Does not need to be valid. This step is necessary because that variable is used in the code, but not present in the repo for safety concerns of Github. It is, however, present in the subsequent Docker image):
+1. Create in the repository root a new file named `config.py`, and write an api key as shown below (Does not need to be valid. This step is necessary because that variable is used in the code, but not present in the repo for safety concerns of Github. It is, however, present in the subsequent Docker image):
 ```
 api_key='your_api_key_here'
 ```
-2. Create in the [faq-front](./faq-front) folder, a file named `.env` and export the path to the backend as follows:
+2. Create in the repository root a file named `.env`, and fill it with the following variables:
+```
+OLLAMA_HOST=localhost
+OLLAMA_MODEL=orca-mini
+PGVECTOR_HOST=localhost
+```
+3. Create in the [faq-front](./faq-front) folder, a file named `.env` and export the path to the backend as follows:
 ```
 REACT_APP_API=http://localhost:8000
 ```
-3. Open a terminal in the repository root and run:
+4. Open a terminal in the repository root and run:
 ```
-uvicorn app.main:app --reload
+uvicorn app.main:app --reload --env-file ./.env
 ```
-4. Open a new terminal in the repository root and run:
+5. Open a new terminal in the repository root and run:
 ```
 cd ./faq-front/
 npm install
 npm start
 ```
-5. These commands should automatically start the frontend. Otherwise, just open in the browser http://localhost:3000/
+6. These commands should automatically start the frontend. Otherwise, just open in the browser http://localhost:3000/
 
 ## Further Improvements
 1. **Add the possibility to switch between local models**.
