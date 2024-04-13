@@ -27,4 +27,39 @@ Objective: Develop a solution that can provide answers to users' questions by ma
         -     ENV OLLAMA_MODEL=orca-mini
         - Create in the repository folder a new file named `config.py`, and write an api key as shown below (Does not need to be valid. This step is necessary because that variable is used in the code, but not present in the repo for safety concerns of Github. It is, however, present in the subsequent Docker image):
         -     api_key='your_api_key_here'
+        - Create in the [faq-front](./faq-front) folder, a file named `.env` and export the path to the backend as follows:
+        -     REACT_APP_API=http://localhost:8000
         - Run `docker compose build`, and then `docker compose up`. The local model should now be `Orca-mini`. A nice addition to the application would be to make the model configurable from the frontend. 
+
+### Locally 
+
+#### Prerequisites 
+1. Necessary python libraries installed, which are listed in [requirements.txt](./requirements.txt). Cd into the repo root and run `pip install -r requirements.txt`.
+2. [PostgreSQL](https://www.postgresql.org/download/)
+3. [pgvector](https://github.com/pgvector/pgvector) extension for Postgres. Follow the installation steps from their repository.
+4. [Ollama](https://ollama.com/) for running LLM's locally and easily integrate them in the code.
+   - After installing Ollama, cd into the folder where it is installed, open a Command Prompt there, and download the models that you want using `ollama pull` command, for example:
+   -     ollama pull orca-mini
+   - Find more details on what you can do with Ollama and what are the supported models on their [Github repo].
+5. [Node.js](https://nodejs.org/en) (the LTS version, as it contains npm which is necessary for running the frontend).
+
+#### Usage
+1. Create in the repository folder a new file named `config.py`, and write an api key as shown below (Does not need to be valid. This step is necessary because that variable is used in the code, but not present in the repo for safety concerns of Github. It is, however, present in the subsequent Docker image):
+```
+api_key='your_api_key_here'
+```
+2. Create in the [faq-front](./faq-front) folder, a file named `.env` and export the path to the backend as follows:
+```
+REACT_APP_API=http://localhost:8000
+```
+3. Open a terminal in the repository root and run:
+```
+uvicorn app.main:app --reload
+```
+4. Open a new terminal in the repository root and run:
+```
+cd ./faq-front/
+npm install
+npm start
+```
+5. These commands should automatically start the frontend. Otherwise, just open in the browser http://localhost:3000/ 
