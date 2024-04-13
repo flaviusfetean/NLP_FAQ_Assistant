@@ -26,4 +26,5 @@ Objective: Develop a solution that can provide answers to users' questions by ma
         - Open the [Dockerfile](./Dockerfile) from the repository folder and modify the line 24 so it exports `orca-mini` instead of `llama2`:
         -     ENV OLLAMA_MODEL=orca-mini
         - Create in the repository folder a new file named `config.py`, and write an api key as shown below (Does not need to be valid. This step is necessary because that variable is used in the code, but not present in the repo for safety concerns of Github. It is, however, present in the subsequent Docker image):
+        -     api_key='your_api_key_here'
         - Run `docker compose build`, and then `docker compose up`. The local model should now be `Orca-mini`. A nice addition to the application would be to make the model configurable from the frontend. 
