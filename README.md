@@ -21,4 +21,9 @@ Objective: Develop a solution that can provide answers to users' questions by ma
     - In the beginning, you might be unauthenticated to Openai, in which case the interactions not resolved by the database will be carried by the local model.
     - To connect to Openai, you can enter a valid key in the corresponding field (top), and press enter, so the questions are forwarded to Openai if not found in the database. If the key is not valid, however, the interactions will still be managed by the local model.
     - The questions which are forwarded will also be saved locally.
-    - The local model is currently [Llama2](https://www.llama2.ai/) by default. It might be more intensive and slow, but should work fine if you have more than 8GB of RAM. 
+    - The local model is currently [Llama2](https://www.llama2.ai/) by default. It might be more intensive and slow, but should work fine if you have more than 8GB of RAM.
+    - There is the alternative to switch the model to [Orca-mini](https://ollama.com/library/orca-mini), which is less than half the size so if will be less intensive. However you will notice a decrease in the quality of the responses. To switch to Orca-mini, you will need to follow these steps:
+        - Open the [Dockerfile](./Dockerfile) from the repository folder and modify the line 24 so it exports `orca-mini` instead of `llama2`:
+        -     ENV OLLAMA_MODEL=orca-mini
+        - Create in the repository folder a new file named `config.py`, and write an api key as shown below (Does not need to be valid. This step is necessary because that variable is used in the code, but not present in the repo for safety concerns of Github. It is, however, present in the subsequent Docker image):
+        - Run `docker compose build`, and then `docker compose up`. The local model should now be `Orca-mini`. A nice addition to the application would be to make the model configurable from the frontend. 
