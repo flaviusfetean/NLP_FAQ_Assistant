@@ -62,4 +62,10 @@ cd ./faq-front/
 npm install
 npm start
 ```
-5. These commands should automatically start the frontend. Otherwise, just open in the browser http://localhost:3000/ 
+5. These commands should automatically start the frontend. Otherwise, just open in the browser http://localhost:3000/
+
+## Further Improvements
+1. **Add the possibility to switch between local models**.
+2. **Send server responses to the frontend in chunks** (not a really useful thing but looks cool + the integrations with openai and ollama allow easily receiving of LLM output in chunks)
+3. **Synchronize the databases of different models**. As their embeddings are different, it makes sense that they are also kept and searched into different locations. Currently, different collections are held in the same database and used based on the model name. However, if a model caches an embedding in its database, it will not be replicated in the databases of the others, even if it could be useful. This may be done either by computing in-place the embedding of the other models and inserting them, or by pulling at initialization all of the other model's cache.
+4. **Compute the similarities between questions in a smarter way**. Currently the way this is implemented is by measuring cosine distance between the embeddings computed by the models. However, this may not be the optimal way as there are multiple occasions where the retrieved questions are wrong, or not matched even if they should. For example, if you prompt `What are the steps to consider for a trip to Japan?` (obviously not present in the local database), it will be forwarded to openai and the steps to take for a trip to Japan will be retrieved and cached (steps which include learning Japanese, getting a Japanese visa, etc). If you then prompt `What are the steps to consider for a trip to Germany?`, the same cached answer for Japan will be retrieved, even if it would be completely wrong. Methods to consider are to also take into account what are the most iportant words in a question, compute ROUGE scores between questions, or also compare the embeddings of the questions with the answers, as often questions may be entirely contained in their respective answers.
