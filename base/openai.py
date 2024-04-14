@@ -83,8 +83,9 @@ class Assistant:
 
     def register_key(self, key):
         if self.client_type == "local":
-            self.client = openai.OpenAI(api_key=key)
-            if self.test_key(self.client):
+            client = openai.OpenAI(api_key=key)
+            if self.test_key(client):
+                self.client = client
                 self.client_type = "openai"
                 print("Successfully connected to openai server")
                 return True
@@ -93,16 +94,15 @@ class Assistant:
                 return False
 
     def switch_local(self):
-        if self.client_type == "openai":
-            model = Ollama(model=OLLAMA_MODEL, base_url=f"http://{OLLAMA_HOST}:11434")
-            prompt = ChatPromptTemplate.from_messages([
-                ("system", "You are a FAQ assistant."
-                           "Your answer should be clear and straightforward."
-                           "Do not include any unnecessary information."),
-                ("user", "{input}")
-            ])
-            parser = StrOutputParser()
-            self.client = prompt | model | parser
-            self.client_type = "local"
-            print("Switched to local model")
+        model = Ollama(model=OLLAMA_MODEL, base_url=f"http://{OLLAMA_HOST}:11434")
+        prompt = ChatPromptTemplate.from_messages([
+            ("system", "You are a FAQ assistant."
+                       "Your answer should be clear and straightforward."
+                       "Do not include any unnecessary information."),
+            ("user", "{input}")
+        ])
+        parser = StrOutputParser()
+        self.client = prompt | model | parser
+        self.client_type = "local"
+        print("Switched to local model")
 
